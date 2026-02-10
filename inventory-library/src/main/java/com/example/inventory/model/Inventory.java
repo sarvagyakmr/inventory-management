@@ -2,6 +2,8 @@ package com.example.inventory.model;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -12,11 +14,21 @@ public class Inventory {
     private InventoryId id;
     private int quantity;
 
+    // Association to Product (master by skuId) for separation; inventory held at product level (uom in key)
+    @ManyToOne
+    @JoinColumn(name = "sku_id", referencedColumnName = "skuId", insertable = false, updatable = false)
+    private Product product;
+
+    // Association to Stage
+    @ManyToOne
+    @JoinColumn(name = "stage_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private Stage stage;
+
     public Inventory() {
     }
 
-    public Inventory(String productId, String locationId, int quantity) {
-        this.id = new InventoryId(productId, locationId);
+    public Inventory(String skuId, String unitOfMeasure, String locationId, String stageId, int quantity) {
+        this.id = new InventoryId(skuId, unitOfMeasure, locationId, stageId);
         this.quantity = quantity;
     }
 
@@ -36,11 +48,35 @@ public class Inventory {
         this.quantity = quantity;
     }
 
-    public String getProductId() {
-        return id != null ? id.getProductId() : null;
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Stage getStage() {
+        return stage;
+    }
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
+
+    public String getSkuId() {
+        return id != null ? id.getSkuId() : null;
+    }
+
+    public String getUnitOfMeasure() {
+        return id != null ? id.getUnitOfMeasure() : null;
     }
 
     public String getLocationId() {
         return id != null ? id.getLocationId() : null;
+    }
+
+    public String getStageId() {
+        return id != null ? id.getStageId() : null;
     }
 }

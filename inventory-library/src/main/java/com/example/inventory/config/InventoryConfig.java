@@ -1,7 +1,13 @@
 package com.example.inventory.config;
 
 import com.example.inventory.repository.InventoryRepository;
+import com.example.inventory.repository.ProcessedMessageRepository;
+import com.example.inventory.repository.ProductRepository;
+import com.example.inventory.repository.ProductUomRepository;
+import com.example.inventory.repository.StageRepository;
+import com.example.inventory.repository.StageTransitionRepository;
 import com.example.inventory.repository.StorageLocationRepository;
+import com.example.inventory.repository.UomConversionRepository;
 import com.example.inventory.service.InventoryService;
 import com.example.inventory.service.InventoryServiceImpl;
 import jakarta.persistence.EntityManagerFactory;
@@ -18,8 +24,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class InventoryConfig {
 
     @Bean
-    public InventoryService inventoryService(InventoryRepository inventoryRepository, StorageLocationRepository locationRepository) {
-        return new InventoryServiceImpl(inventoryRepository, locationRepository);
+    public InventoryService inventoryService(InventoryRepository inventoryRepository, StorageLocationRepository locationRepository, ProductRepository productRepository, ProductUomRepository productUomRepository, UomConversionRepository uomConversionRepository, ProcessedMessageRepository processedMessageRepository, StageRepository stageRepository, StageTransitionRepository stageTransitionRepository) {
+        return new InventoryServiceImpl(inventoryRepository, locationRepository, productRepository, productUomRepository, uomConversionRepository, processedMessageRepository, stageRepository, stageTransitionRepository);
     }
 
     @Bean

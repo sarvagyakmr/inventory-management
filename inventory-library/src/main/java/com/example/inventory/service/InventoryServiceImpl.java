@@ -3,9 +3,24 @@ package com.example.inventory.service;
 import com.example.inventory.model.Inventory;
 import com.example.inventory.model.InventoryId;
 import com.example.inventory.model.LocationType;
+import com.example.inventory.model.ProcessedMessage;
+import com.example.inventory.model.Product;
+import com.example.inventory.model.ProductId;
+import com.example.inventory.model.ProductUom;
+import com.example.inventory.model.Stage;
+import com.example.inventory.model.StageTransition;
+import com.example.inventory.model.StageTransitionId;
 import com.example.inventory.model.StorageLocation;
+import com.example.inventory.model.UomConversion;
+import com.example.inventory.model.UomConversionId;
 import com.example.inventory.repository.InventoryRepository;
+import com.example.inventory.repository.ProcessedMessageRepository;
+import com.example.inventory.repository.ProductRepository;
+import com.example.inventory.repository.ProductUomRepository;
+import com.example.inventory.repository.StageRepository;
+import com.example.inventory.repository.StageTransitionRepository;
 import com.example.inventory.repository.StorageLocationRepository;
+import com.example.inventory.repository.UomConversionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +32,22 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final StorageLocationRepository locationRepository;
+    private final ProductRepository productRepository;
+    private final ProductUomRepository productUomRepository;
+    private final UomConversionRepository uomConversionRepository;
+    private final ProcessedMessageRepository processedMessageRepository;
+    private final StageRepository stageRepository;
+    private final StageTransitionRepository stageTransitionRepository;
 
-    public InventoryServiceImpl(InventoryRepository inventoryRepository, StorageLocationRepository locationRepository) {
+    public InventoryServiceImpl(InventoryRepository inventoryRepository, StorageLocationRepository locationRepository, ProductRepository productRepository, ProductUomRepository productUomRepository, UomConversionRepository uomConversionRepository, ProcessedMessageRepository processedMessageRepository, StageRepository stageRepository, StageTransitionRepository stageTransitionRepository) {
         this.inventoryRepository = inventoryRepository;
         this.locationRepository = locationRepository;
+        this.productRepository = productRepository;
+        this.productUomRepository = productUomRepository;
+        this.uomConversionRepository = uomConversionRepository;
+        this.processedMessageRepository = processedMessageRepository;
+        this.stageRepository = stageRepository;
+        this.stageTransitionRepository = stageTransitionRepository;
     }
 
     @Override
@@ -28,7 +55,7 @@ public class InventoryServiceImpl implements InventoryService {
     public StorageLocation addStorageLocation(LocationType type, String description) {
         String locationId = UUID.randomUUID().toString();
         if (locationRepository.existsById(locationId)) {
-            throw new IllegalArgumentException("Location already exists");  // rare for UUID
+            throw new IllegalArgumentException("Location already exists");
         }
         StorageLocation location = new StorageLocation(locationId, type, description);
         return locationRepository.save(location);
@@ -36,24 +63,117 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public Inventory addProduct(String productId, String locationId) {
-        if (!locationRepository.existsById(locationId)) {
-            throw new IllegalArgumentException("Location not found");
+    public Stage addStage(String name, String description) {
+        String stageId = UUID.randomUUID().toString();
+        if (stageRepository.existsById(stageId)) {
+            throw new IllegalArgumentException("Stage already exists");
         }
-        InventoryId invId = new InventoryId(productId, locationId);
-        if (inventoryRepository.existsById(invId)) {
-            throw new IllegalArgumentException("Product already exists at location");
-        }
-        Inventory inventory = new Inventory(productId, locationId, 0);
-        return inventoryRepository.save(inventory);
+        Stage stage = new Stage(stageId, name, description);
+        return stageRepository.save(stage);
     }
 
     @Override
     @Transactional
-    public Inventory adjustQuantity(String productId, String locationId, int quantityChange) {
-        InventoryId invId = new InventoryId(productId, locationId);
+    public StageTransition addStageTransition(String fromStageId, String toStageId) {
+        if (!stageRepository.existsById(fromStageId)) {
+            throw new IllegalArgumentException("From stage not found");
+        }
+        if (!stageRepository.existsById(toStageId)) {
+            throw new IllegalArgumentException("To stage not found");
+        }
+        StageTransitionId transId = new StageTransitionId(fromStageId, toStageId);
+        if (stageTransitionRepository.existsById(transId)) {
+            throw new IllegalArgumentException("Transition already defined");
+        }
+        StageTransition transition = new StageTransition(fromStageId, toStageId);
+        return stageTransitionRepository.save(transition);
+    }
+
+    @Override
+    @Transactional
+    public Product addProduct(String skuId) {
+        if (productRepository.existsById(skuId)) {
+            throw new IllegalArgumentException("Product already exists");
+        }
+        Product product = new Product(skuId);
+        return productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductUom addUom(String skuId, String unitOfMeasure) {
+        if (!productRepository.existsById(skuId)) {
+            throw new IllegalArgumentException("Product not found");
+        }
+        ProductId uomId = new ProductId(skuId, unitOfMeasure);
+        if (productUomRepository.existsById(uomId)) {
+            throw new IllegalArgumentException("UOM already defined for product");
+        }
+        ProductUom productUom = new ProductUom(skuId, unitOfMeasure);
+        return productUomRepository.save(productUom);
+    }
+
+    @Override
+    @Transactional
+    public UomConversion addConversion(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, double factor) {
+        if (factor <= 0) {
+            throw new IllegalArgumentException("Conversion factor must be positive");
+        }
+        if (!productUomRepository.existsById(new ProductId(skuId, fromUnitOfMeasure))) {
+            throw new IllegalArgumentException("From UOM not defined");
+        }
+        if (!productUomRepository.existsById(new ProductId(skuId, toUnitOfMeasure))) {
+            throw new IllegalArgumentException("To UOM not defined");
+        }
+        UomConversionId convId = new UomConversionId(skuId, fromUnitOfMeasure, skuId, toUnitOfMeasure);
+        if (uomConversionRepository.existsById(convId)) {
+            throw new IllegalArgumentException("Conversion already defined");
+        }
+        UomConversion conversion = new UomConversion(skuId, fromUnitOfMeasure, skuId, toUnitOfMeasure, factor);
+        return uomConversionRepository.save(conversion);
+    }
+
+    @Override
+    @Transactional
+    public Inventory addInventory(String skuId, String unitOfMeasure, String locationId, String stageId) {
+        if (!locationRepository.existsById(locationId)) {
+            throw new IllegalArgumentException("Location not found");
+        }
+        if (!stageRepository.existsById(stageId)) {
+            throw new IllegalArgumentException("Stage not found");
+        }
+        if (!productRepository.existsById(skuId)) {
+            throw new IllegalArgumentException("Product not found");
+        }
+        if (!productUomRepository.existsById(new ProductId(skuId, unitOfMeasure))) {
+            throw new IllegalArgumentException("UOM not defined for product");
+        }
+        InventoryId invId = new InventoryId(skuId, unitOfMeasure, locationId, stageId);
+        if (inventoryRepository.existsById(invId)) {
+            throw new IllegalArgumentException("Inventory already exists at location");
+        }
+        Inventory inventory = new Inventory(skuId, unitOfMeasure, locationId, stageId, 0);
+        Product product = productRepository.findById(skuId).get();
+        Stage stage = stageRepository.findById(stageId).get();
+        inventory.setProduct(product);
+        inventory.setStage(stage);
+        return inventoryRepository.save(inventory);
+    }
+
+    private void checkAndRecordMessageId(String messageId) {
+        if (processedMessageRepository.existsById(messageId)) {
+            throw new IllegalArgumentException("Message already processed (idempotent)");
+        }
+        processedMessageRepository.save(new ProcessedMessage(messageId));
+    }
+
+    @Override
+    @Transactional
+    public Inventory adjustQuantity(String skuId, String unitOfMeasure, String locationId, String stageId, int quantityChange, String messageId) {
+        checkAndRecordMessageId(messageId);
+        InventoryId invId = new InventoryId(skuId, unitOfMeasure, locationId, stageId);
         Inventory inventory = inventoryRepository.findById(invId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found at location"));
+                .orElseThrow(() -> new IllegalArgumentException("Inventory not found at location"));
         int newQuantity = inventory.getQuantity() + quantityChange;
         if (newQuantity < 0) {
             throw new IllegalArgumentException("Quantity cannot be negative");
@@ -64,9 +184,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Inventory> getInventory(String productId) {
+    public List<Inventory> getInventory(String skuId, String unitOfMeasure) {
         return inventoryRepository.findAll().stream()
-                .filter(inv -> productId.equals(inv.getProductId()))
+                .filter(inv -> skuId.equals(inv.getSkuId()) && unitOfMeasure.equals(inv.getUnitOfMeasure()))
                 .toList();
     }
 
@@ -80,28 +200,109 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public Inventory moveInventory(String productId, String fromLocationId, String toLocationId, int quantityToMove) {
+    public Inventory moveInventory(String skuId, String unitOfMeasure, String fromLocationId, String toLocationId, String stageId, int quantityToMove) {
         if (quantityToMove <= 0) {
             throw new IllegalArgumentException("Quantity to move must be positive");
         }
-        // check locations exist
         if (!locationRepository.existsById(fromLocationId) || !locationRepository.existsById(toLocationId)) {
             throw new IllegalArgumentException("Location not found");
         }
-        // from inventory
-        InventoryId fromId = new InventoryId(productId, fromLocationId);
+        if (!productUomRepository.existsById(new ProductId(skuId, unitOfMeasure))) {
+            throw new IllegalArgumentException("UOM not defined for product");
+        }
+        InventoryId fromId = new InventoryId(skuId, unitOfMeasure, fromLocationId, stageId);
         Inventory fromInv = inventoryRepository.findById(fromId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found at from location"));
+                .orElseThrow(() -> new IllegalArgumentException("Inventory not found at from location"));
         if (fromInv.getQuantity() < quantityToMove) {
             throw new IllegalArgumentException("Insufficient quantity at from location");
+        }
+        fromInv.setQuantity(fromInv.getQuantity() - quantityToMove);
+        inventoryRepository.save(fromInv);
+        InventoryId toId = new InventoryId(skuId, unitOfMeasure, toLocationId, stageId);  // same stage
+        Inventory toInv = inventoryRepository.findById(toId)
+                .orElseGet(() -> {
+                    Inventory inv = new Inventory(skuId, unitOfMeasure, toLocationId, stageId, 0);
+                    Product product = productRepository.findById(skuId).get();
+                    Stage stage = stageRepository.findById(stageId).get();
+                    inv.setProduct(product);
+                    inv.setStage(stage);
+                    return inv;
+                });
+        toInv.setQuantity(toInv.getQuantity() + quantityToMove);
+        return inventoryRepository.save(toInv);
+    }
+
+    @Override
+    @Transactional
+    public Inventory convertUom(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, String stageId, int quantityToConvert, String locationId, String messageId) {
+        checkAndRecordMessageId(messageId);
+        if (quantityToConvert <= 0) {
+            throw new IllegalArgumentException("Quantity to convert must be positive");
+        }
+        if (!locationRepository.existsById(locationId)) {
+            throw new IllegalArgumentException("Location not found");
+        }
+        UomConversionId convId = new UomConversionId(skuId, fromUnitOfMeasure, skuId, toUnitOfMeasure);
+        UomConversion conversion = uomConversionRepository.findById(convId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversion not defined"));
+        double factor = conversion.getFactor();
+        // from inventory
+        InventoryId fromId = new InventoryId(skuId, fromUnitOfMeasure, locationId, stageId);
+        Inventory fromInv = inventoryRepository.findById(fromId)
+                .orElseThrow(() -> new IllegalArgumentException("From UOM inventory not found at location"));
+        if (fromInv.getQuantity() < quantityToConvert) {
+            throw new IllegalArgumentException("Insufficient quantity in from UOM");
+        }
+        // deduct
+        fromInv.setQuantity(fromInv.getQuantity() - quantityToConvert);
+        inventoryRepository.save(fromInv);
+        // to inventory (convert qty, create if not)
+        int toQuantity = (int) (quantityToConvert * factor);
+        InventoryId toId = new InventoryId(skuId, toUnitOfMeasure, locationId, stageId);
+        Inventory toInv = inventoryRepository.findById(toId)
+                .orElseGet(() -> {
+                    Inventory inv = new Inventory(skuId, toUnitOfMeasure, locationId, stageId, 0);  // same stage
+                    Product product = productRepository.findById(skuId).get();
+                    Stage stage = stageRepository.findById(stageId).get();
+                    inv.setProduct(product);
+                    inv.setStage(stage);
+                    return inv;
+                });
+        toInv.setQuantity(toInv.getQuantity() + toQuantity);
+        return inventoryRepository.save(toInv);
+    }
+
+    @Override
+    @Transactional
+    public Inventory moveToStage(String skuId, String unitOfMeasure, String locationId, String fromStageId, String toStageId, int quantityToMove, String messageId) {
+        checkAndRecordMessageId(messageId);
+        if (quantityToMove <= 0) {
+            throw new IllegalArgumentException("Quantity to move must be positive");
+        }
+        if (!stageTransitionRepository.existsById(new StageTransitionId(fromStageId, toStageId))) {
+            throw new IllegalArgumentException("Stage transition not allowed");
+        }
+        // from inventory
+        InventoryId fromId = new InventoryId(skuId, unitOfMeasure, locationId, fromStageId);
+        Inventory fromInv = inventoryRepository.findById(fromId)
+                .orElseThrow(() -> new IllegalArgumentException("Inventory not found at from stage"));
+        if (fromInv.getQuantity() < quantityToMove) {
+            throw new IllegalArgumentException("Insufficient quantity at from stage");
         }
         // deduct
         fromInv.setQuantity(fromInv.getQuantity() - quantityToMove);
         inventoryRepository.save(fromInv);
-        // to inventory (create if not exists)
-        InventoryId toId = new InventoryId(productId, toLocationId);
+        // to inventory (create if not)
+        InventoryId toId = new InventoryId(skuId, unitOfMeasure, locationId, toStageId);
         Inventory toInv = inventoryRepository.findById(toId)
-                .orElse(new Inventory(productId, toLocationId, 0));
+                .orElseGet(() -> {
+                    Inventory inv = new Inventory(skuId, unitOfMeasure, locationId, toStageId, 0);
+                    Product product = productRepository.findById(skuId).get();
+                    Stage toStage = stageRepository.findById(toStageId).get();
+                    inv.setProduct(product);
+                    inv.setStage(toStage);
+                    return inv;
+                });
         toInv.setQuantity(toInv.getQuantity() + quantityToMove);
         return inventoryRepository.save(toInv);
     }
