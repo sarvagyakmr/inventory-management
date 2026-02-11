@@ -15,6 +15,7 @@
     <modules>
         <module>inventory-library</module>
         <module>example-usage</module>
+        <module>oms</module>
     </modules>
 
     <properties>
