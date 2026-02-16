@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.wms.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,7 +12,8 @@ import jakarta.persistence.Table;
  * StorageArea entity for warehouse configuration.
  * id: long auto-increment
  * description: user input
- * type: StorageAreaType (provided at creation): INWARD, OUTWARD, STORAGE, PIGEON_HOLE
+ * type: StorageAreaType (provided at creation): INWARD, OUTWARD, STORAGE,
+ * PIGEON_HOLE
  */
 @Entity
 @Table(name = "storage_area")

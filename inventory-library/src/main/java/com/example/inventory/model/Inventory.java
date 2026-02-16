@@ -1,7 +1,10 @@
 package com.example.inventory.model;
 
-import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -10,11 +13,26 @@ import jakarta.persistence.Table;
 @Table(name = "inventory")
 public class Inventory {
 
-    @EmbeddedId
-    private InventoryId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "sku_id")
+    private String skuId;
+
+    @Column(name = "unit_of_measure")
+    private String unitOfMeasure;
+
+    @Column(name = "location_id")
+    private String locationId;
+
+    @Column(name = "stage_id")
+    private Long stageId;
+
     private int quantity;
 
-    // Association to Product (master by skuId) for separation; inventory held at product level (uom in key)
+    // Association to Product (master by skuId) for separation; inventory held at
+    // product level (uom in key)
     @ManyToOne
     @JoinColumn(name = "sku_id", referencedColumnName = "skuId", insertable = false, updatable = false)
     private Product product;
@@ -27,16 +45,19 @@ public class Inventory {
     public Inventory() {
     }
 
-    public Inventory(String skuId, String unitOfMeasure, String locationId, String stageId, int quantity) {
-        this.id = new InventoryId(skuId, unitOfMeasure, locationId, stageId);
+    public Inventory(String skuId, String unitOfMeasure, String locationId, Long stageId, int quantity) {
+        this.skuId = skuId;
+        this.unitOfMeasure = unitOfMeasure;
+        this.locationId = locationId;
+        this.stageId = stageId;
         this.quantity = quantity;
     }
 
-    public InventoryId getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(InventoryId id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -65,18 +86,34 @@ public class Inventory {
     }
 
     public String getSkuId() {
-        return id != null ? id.getSkuId() : null;
+        return skuId;
+    }
+
+    public void setSkuId(String skuId) {
+        this.skuId = skuId;
     }
 
     public String getUnitOfMeasure() {
-        return id != null ? id.getUnitOfMeasure() : null;
+        return unitOfMeasure;
+    }
+
+    public void setUnitOfMeasure(String unitOfMeasure) {
+        this.unitOfMeasure = unitOfMeasure;
     }
 
     public String getLocationId() {
-        return id != null ? id.getLocationId() : null;
+        return locationId;
     }
 
-    public String getStageId() {
-        return id != null ? id.getStageId() : null;
+    public void setLocationId(String locationId) {
+        this.locationId = locationId;
+    }
+
+    public Long getStageId() {
+        return stageId;
+    }
+
+    public void setStageId(Long stageId) {
+        this.stageId = stageId;
     }
 }

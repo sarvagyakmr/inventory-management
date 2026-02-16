@@ -1,29 +1,31 @@
-package com.example.inventory.service;
+package com.example.wms.service;
 
-import com.example.inventory.model.Aisle;
-import com.example.inventory.model.Box;
-import com.example.inventory.model.Item;
-import com.example.inventory.model.ItemStatus;
-import com.example.inventory.model.Location;
-import com.example.inventory.model.LocationCapacityType;
-import com.example.inventory.model.QcStatus;
-import com.example.inventory.model.StorageArea;
-import com.example.inventory.model.StorageAreaType;
-import com.example.inventory.repository.AisleRepository;
-import com.example.inventory.repository.BoxRepository;
-import com.example.inventory.repository.ItemRepository;
-import com.example.inventory.repository.LocationRepository;
-import com.example.inventory.repository.StorageAreaRepository;
+import com.example.wms.model.Aisle;
+import com.example.wms.model.Box;
+import com.example.wms.model.Item;
+import com.example.wms.model.ItemStatus;
+import com.example.wms.model.Location;
+import com.example.wms.model.LocationCapacityType;
+import com.example.wms.model.QcStatus;
+import com.example.wms.model.StorageArea;
+import com.example.wms.model.StorageAreaType;
+import com.example.wms.repository.AisleRepository;
+import com.example.wms.repository.BoxRepository;
+import com.example.wms.repository.ItemRepository;
+import com.example.wms.repository.LocationRepository;
+import com.example.wms.repository.StorageAreaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Implementation of WarehouseService with ID generation logic for hierarchical
  * storage locations in warehouse:
- * - StorageArea: auto-increment ID (type required: INWARD/OUTWARD/STORAGE/PIGEON_HOLE)
+ * - StorageArea: auto-increment ID (type required:
+ * INWARD/OUTWARD/STORAGE/PIGEON_HOLE)
  * - Aisle: S{areaId}-A{N} where N = count in area + 1
  * - Location: {aisleId}-L{M} where M = count in aisle + 1 (type: SINGLE/MULTI)
- * - Box: auto ID, type=StorageAreaType, nullable Location ref (type must match on assignment)
+ * - Box: auto ID, type=StorageAreaType, nullable Location ref (type must match
+ * on assignment)
  */
 @Service
 public class WarehouseServiceImpl implements WarehouseService {
@@ -35,10 +37,10 @@ public class WarehouseServiceImpl implements WarehouseService {
     private final ItemRepository itemRepository;
 
     public WarehouseServiceImpl(StorageAreaRepository storageAreaRepository,
-                                AisleRepository aisleRepository,
-                                LocationRepository locationRepository,
-                                BoxRepository boxRepository,
-                                ItemRepository itemRepository) {
+            AisleRepository aisleRepository,
+            LocationRepository locationRepository,
+            BoxRepository boxRepository,
+            ItemRepository itemRepository) {
         this.storageAreaRepository = storageAreaRepository;
         this.aisleRepository = aisleRepository;
         this.locationRepository = locationRepository;
@@ -88,9 +90,6 @@ public class WarehouseServiceImpl implements WarehouseService {
         if (!aisleRepository.existsById(aisleId)) {
             throw new IllegalArgumentException("Aisle not found: " + aisleId);
         }
-        // Optionally: validate aisle belongs to area
-        // Aisle aisle = aisleRepository.findById(aisleId).get();
-        // if (!aisle.getStorageAreaId().equals(storageAreaId)) { ... }
         // Determine next location number in this aisle
         long locNum = locationRepository.countByAisleId(aisleId) + 1;
         String locationId = aisleId + "-L" + locNum;
@@ -140,32 +139,24 @@ public class WarehouseServiceImpl implements WarehouseService {
                 .orElseThrow(() -> new IllegalArgumentException("Location not found: " + locationId));
 
         // Enforce StorageArea type via area for new location
-        // (Box.type remains fixed at creation for identity; status is dynamic for current state)
-        // Removed strict Box.type == area.type mismatch (was blocking INWARD Box -> STORAGE Location)
-        // State machine below allows valid moves (e.g., INWARD->STORAGE)
         Long areaId = location.getStorageAreaId();
         StorageArea area = storageAreaRepository.findById(areaId)
                 .orElseThrow(() -> new IllegalArgumentException("Storage area not found for location"));
 
         // Guardrail for inventory accuracy: Box StorageAreaType movement state machine
-        // Allowed: INWARD -> STORAGE, STORAGE -> STORAGE/OUTWARD, OUTWARD -> none (terminal)
-        // PIGEON_HOLE treated as STORAGE-like; prevents invalid moves (e.g., OUTWARD back)
-        // Enables INWARD Box to STORAGE Location (as required)
         StorageAreaType newType = area.getType();
         StorageAreaType currentType = (box.getLocation() != null)
-            ? getAreaTypeForLocation(box.getLocation())
-            : null;  // initial assignment allowed
+                ? getAreaTypeForLocation(box.getLocation())
+                : null; // initial assignment allowed
         if (!isValidAreaTypeTransition(currentType, newType)) {
             throw new IllegalArgumentException(
-                String.format("Invalid state machine transition for Box %s: %s -> %s (allowed: INWARD->STORAGE, STORAGE<->STORAGE/OUTWARD, OUTWARD terminal)",
-                    boxId, currentType, newType));
+                    String.format(
+                            "Invalid state machine transition for Box %s: %s -> %s (allowed: INWARD->STORAGE, STORAGE<->STORAGE/OUTWARD, OUTWARD terminal)",
+                            boxId, currentType, newType));
         }
 
-        // Item/Box status state machine guardrail:
-        // - Box.status updated to Location's StorageArea.type (dynamic; e.g., INWARD Box -> STORAGE)
-        // - When Box moved to STORAGE Location: Items -> LIVE (e.g., received inward -> live storage)
-        // - Ties to CREATED/INWARD prior states; ensures inventory accuracy
-        box.setStatus(newType);  // sync Box status to new area type (allows INWARD->STORAGE)
+        // Item/Box status state machine guardrail
+        box.setStatus(newType); // sync Box status to new area type
         if (newType == StorageAreaType.STORAGE) {
             for (Item item : box.getItems()) {
                 item.setItemStatus(ItemStatus.LIVE);
@@ -173,11 +164,12 @@ public class WarehouseServiceImpl implements WarehouseService {
         }
 
         box.setLocation(location);
-        return boxRepository.save(box);  // cascades Item/Box status updates
+        return boxRepository.save(box);
     }
 
     /**
-     * Helper: Get StorageAreaType for a Location (via parent area) for state machine checks.
+     * Helper: Get StorageAreaType for a Location (via parent area) for state
+     * machine checks.
      */
     private StorageAreaType getAreaTypeForLocation(Location location) {
         Long areaId = location.getStorageAreaId();
@@ -187,21 +179,17 @@ public class WarehouseServiceImpl implements WarehouseService {
     }
 
     /**
-     * State machine guardrail for Box StorageAreaType movements to ensure inventory accuracy.
-     * - INWARD can only go to STORAGE (e.g., receiving to storage)
-     * - STORAGE can stay in STORAGE or move to OUTWARD (e.g., picking/shipping)
-     * - OUTWARD is terminal (no further moves)
-     * - PIGEON_HOLE treated as STORAGE (specialized static)
-     * Returns true for initial (null current) if type matches location.
+     * State machine guardrail for Box StorageAreaType movements to ensure inventory
+     * accuracy.
      */
     private boolean isValidAreaTypeTransition(StorageAreaType current, StorageAreaType next) {
         if (current == null) {
-            return true;  // initial assignment (type already matched above)
+            return true; // initial assignment
         }
         return switch (current) {
             case INWARD -> next == StorageAreaType.STORAGE;
             case STORAGE, PIGEON_HOLE -> next == StorageAreaType.STORAGE || next == StorageAreaType.OUTWARD;
-            case OUTWARD -> false;  // terminal, no moves
+            case OUTWARD -> false; // terminal, no moves
             default -> false;
         };
     }
@@ -212,8 +200,7 @@ public class WarehouseServiceImpl implements WarehouseService {
         if (qcStatus == null) {
             throw new IllegalArgumentException("Item QC status is required");
         }
-        // Product validation moved to WMS layer to call OMS API (OMS as source of truth)
-        // Library keeps simple create for Item (defaults to CREATED status).
+        // Product validation delegated to WMS controller (calls OMS API)
         Item item = new Item(productId, qcStatus);
         return itemRepository.save(item);
     }
@@ -229,8 +216,8 @@ public class WarehouseServiceImpl implements WarehouseService {
         // Enforce QC status match rule
         if (item.getQcStatus() != box.getQcStatus()) {
             throw new IllegalArgumentException(
-                String.format("QC mismatch: Item QC %s cannot be added to Box QC %s",
-                    item.getQcStatus(), box.getQcStatus()));
+                    String.format("QC mismatch: Item QC %s cannot be added to Box QC %s",
+                            item.getQcStatus(), box.getQcStatus()));
         }
 
         // Item status state machine: CREATED -> INWARD when added to INWARD Box

@@ -39,7 +39,9 @@ public class OmsService {
     private final CustomerRepository customerRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
 
-    public OmsService(InventoryService inventoryService, SupplierRepository supplierRepository, InwardOrderRepository inwardOrderRepository, GrnRepository grnRepository, CustomerRepository customerRepository, PurchaseOrderRepository purchaseOrderRepository) {
+    public OmsService(InventoryService inventoryService, SupplierRepository supplierRepository,
+            InwardOrderRepository inwardOrderRepository, GrnRepository grnRepository,
+            CustomerRepository customerRepository, PurchaseOrderRepository purchaseOrderRepository) {
         this.inventoryService = inventoryService;
         this.supplierRepository = supplierRepository;
         this.inwardOrderRepository = inwardOrderRepository;
@@ -70,16 +72,21 @@ public class OmsService {
         return inventoryService.addProduct(skuId);
     }
 
-    public Inventory updateInventory(String skuId, String unitOfMeasure, String locationId, String stageId, int quantityChange, String messageId) {
+    public Inventory updateInventory(String skuId, String unitOfMeasure, String locationId, Long stageId,
+            int quantityChange, String messageId) {
         return inventoryService.adjustQuantity(skuId, unitOfMeasure, locationId, stageId, quantityChange, messageId);
     }
 
-    public Inventory makeInventoryTransition(String skuId, String unitOfMeasure, String locationId, String fromStageId, String toStageId, int quantityToMove, String messageId) {
-        return inventoryService.moveToStage(skuId, unitOfMeasure, locationId, fromStageId, toStageId, quantityToMove, messageId);
+    public Inventory makeInventoryTransition(String skuId, String unitOfMeasure, String locationId, Long fromStageId,
+            Long toStageId, int quantityToMove, String messageId) {
+        return inventoryService.moveToStage(skuId, unitOfMeasure, locationId, fromStageId, toStageId, quantityToMove,
+                messageId);
     }
 
-    public Inventory convertProductUom(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, String stageId, int quantityToConvert, String locationId, String messageId) {
-        return inventoryService.convertUom(skuId, fromUnitOfMeasure, toUnitOfMeasure, stageId, quantityToConvert, locationId, messageId);
+    public Inventory convertProductUom(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, Long stageId,
+            int quantityToConvert, String locationId, String messageId) {
+        return inventoryService.convertUom(skuId, fromUnitOfMeasure, toUnitOfMeasure, stageId, quantityToConvert,
+                locationId, messageId);
     }
 
     public Supplier addSupplier(String name, String contactInfo) {
@@ -129,7 +136,8 @@ public class OmsService {
         // ensure RECEIVED stage in IMS (create if needed; dupe names ok for demo)
         Stage receivedStage = inventoryService.addStage(InventoryMovement.RECEIVED.name(), "Received goods stage");
 
-        // for each GRN item, inward to IMS: create product/uom if needed, add inventory to RECEIVED stage
+        // for each GRN item, inward to IMS: create product/uom if needed, add inventory
+        // to RECEIVED stage
         // use order's location (moved from GRN step per req)
         for (GrnItem item : items) {
             try {
@@ -142,8 +150,10 @@ public class OmsService {
             } catch (IllegalArgumentException e) {
                 // ignore if exists
             }
-            // add inventory (qty as received) to location in RECEIVED stage; auto in received per req
-            inventoryService.addInventory(item.getSkuId(), item.getUnitOfMeasure(), order.getLocationId(), receivedStage.getId());
+            // add inventory (qty as received) to location in RECEIVED stage; auto in
+            // received per req
+            inventoryService.addInventory(item.getSkuId(), item.getUnitOfMeasure(), order.getLocationId(),
+                    receivedStage.getId());
         }
 
         return grn;
@@ -179,7 +189,8 @@ public class OmsService {
                 InventoryMovement.RECEIVED.name(), InventoryMovement.AVAILABLE.name());
         for (PurchaseOrderItem item : items) {
             List<Inventory> inventories = inventoryService.getInventory(item.getSkuId(), item.getUnitOfMeasure());
-            // check for sufficient qty in good stage (existence alone not enough to avoid allocate failure)
+            // check for sufficient qty in good stage (existence alone not enough to avoid
+            // allocate failure)
             boolean hasGoodInventory = inventories.stream()
                     .anyMatch(inv -> inv.getStage() != null
                             && goodStageNames.contains(inv.getStage().getName())
@@ -195,8 +206,9 @@ public class OmsService {
     private void allocateInventoryForOrder(List<PurchaseOrderItem> items, String locationId) {
         // ensure ALLOCATED stage
         Stage allocatedStage = inventoryService.addStage(InventoryMovement.ALLOCATED.name(), "Allocated stage");
-        String toStageId = allocatedStage.getId();
-        // for each item, find inventory in good stage and move qty to ALLOCATED (using moveToStage for transition)
+        Long toStageId = allocatedStage.getId();
+        // for each item, find inventory in good stage and move qty to ALLOCATED (using
+        // moveToStage for transition)
         java.util.Set<String> goodStageNames = java.util.Set.of(
                 InventoryMovement.RECEIVED.name(), InventoryMovement.AVAILABLE.name());
         for (PurchaseOrderItem item : items) {
@@ -206,8 +218,9 @@ public class OmsService {
                     .filter(inv -> inv.getStage() != null && goodStageNames.contains(inv.getStage().getName())
                             && inv.getQuantity() >= item.getQuantity())
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Insufficient inventory in good stage for allocation"));
-            String fromStageId = fromInv.getId().getStageId();  // from the key or stage
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Insufficient inventory in good stage for allocation"));
+            Long fromStageId = fromInv.getStageId();
             String messageId = java.util.UUID.randomUUID().toString();
             // move to allocated (fulfills allocation)
             inventoryService.moveToStage(item.getSkuId(), item.getUnitOfMeasure(), locationId,
@@ -229,7 +242,8 @@ public class OmsService {
     }
 
     /**
-     * Get InwardOrder by ID. Used by WMS for Box creation validation when type=INWARD.
+     * Get InwardOrder by ID. Used by WMS for Box creation validation when
+     * type=INWARD.
      * OMS is source of truth for orders.
      */
     public InwardOrder getInwardOrder(Long orderId) {

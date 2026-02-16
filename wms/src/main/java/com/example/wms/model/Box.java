@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.wms.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.Entity;
@@ -19,12 +19,17 @@ import java.util.Set;
 /**
  * Box entity for warehouse storage.
  * - id: auto-increment Long
- * - type: StorageAreaType (INWARD, OUTWARD, STORAGE, PIGEON_HOLE) -- fixed at creation, must match location's storage area type
- * - status: dynamic StorageAreaType (updated to STORAGE on storage location assign for accuracy guardrails)
+ * - type: StorageAreaType (INWARD, OUTWARD, STORAGE, PIGEON_HOLE) -- fixed at
+ * creation, must match location's storage area type
+ * - status: dynamic StorageAreaType (updated to STORAGE on storage location
+ * assign for accuracy guardrails)
  * - qcStatus: QcStatus (PASS/FAIL/UNKNOWN; now input in REST)
- * - location: nullable reference to Location (for assignment; validated on update)
- * - items: Many-to-many via explicit join table 'box_item' (box_id, item_id) for mapping
- * - orderId: nullable Long; required for INWARD type (references OMS InwardOrder)
+ * - location: nullable reference to Location (for assignment; validated on
+ * update)
+ * - items: Many-to-many via explicit join table 'box_item' (box_id, item_id)
+ * for mapping
+ * - orderId: nullable Long; required for INWARD type (references OMS
+ * InwardOrder)
  */
 @Entity
 @Table(name = "box")
@@ -35,10 +40,10 @@ public class Box {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private StorageAreaType type;  // fixed at creation (e.g., INWARD)
+    private StorageAreaType type; // fixed at creation (e.g., INWARD)
 
     @Enumerated(EnumType.STRING)
-    private StorageAreaType status;  // dynamic: updated to STORAGE on storage location assign (for accuracy)
+    private StorageAreaType status; // dynamic: updated to STORAGE on storage location assign (for accuracy)
 
     @Enumerated(EnumType.STRING)
     private QcStatus qcStatus;
@@ -48,15 +53,12 @@ public class Box {
     @JoinColumn(name = "location_id", nullable = true)
     private Location location;
 
-    // Owning side of many-to-many with Item; creates box_item table (box_id, item_id)
+    // Owning side of many-to-many with Item; creates box_item table (box_id,
+    // item_id)
     // @JsonManagedReference prevents circular serialization (Item -> Box loop)
     @ManyToMany
     @JsonManagedReference
-    @JoinTable(
-        name = "box_item",
-        joinColumns = @JoinColumn(name = "box_id"),
-        inverseJoinColumns = @JoinColumn(name = "item_id")
-    )
+    @JoinTable(name = "box_item", joinColumns = @JoinColumn(name = "box_id"), inverseJoinColumns = @JoinColumn(name = "item_id"))
     private Set<Item> items = new HashSet<>();
 
     // Nullable orderId (e.g., InwardOrder ID from OMS for INWARD boxes)
@@ -66,11 +68,12 @@ public class Box {
     }
 
     /**
-     * Constructor for creation (type/qcStatus required; status=type initial; orderId/location/items nullable).
+     * Constructor for creation (type/qcStatus required; status=type initial;
+     * orderId/location/items nullable).
      */
     public Box(StorageAreaType type, QcStatus qcStatus) {
         this.type = type;
-        this.status = type;  // initial status = type
+        this.status = type; // initial status = type
         this.qcStatus = qcStatus != null ? qcStatus : QcStatus.UNKNOWN;
     }
 

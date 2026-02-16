@@ -1,6 +1,6 @@
-package com.example.inventory.repository;
+package com.example.wms.repository;
 
-import com.example.inventory.model.Item;
+import com.example.wms.model.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

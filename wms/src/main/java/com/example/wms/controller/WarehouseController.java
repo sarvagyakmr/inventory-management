@@ -1,15 +1,15 @@
 package com.example.wms.controller;
 
-import com.example.inventory.model.Aisle;
-import com.example.inventory.model.Box;
-import com.example.inventory.model.Item;
-import com.example.inventory.model.Location;
-import com.example.inventory.model.LocationCapacityType;
 import com.example.inventory.model.Product;
-import com.example.inventory.model.QcStatus;
-import com.example.inventory.model.StorageArea;
-import com.example.inventory.model.StorageAreaType;
-import com.example.inventory.service.WarehouseService;
+import com.example.wms.model.Aisle;
+import com.example.wms.model.Box;
+import com.example.wms.model.Item;
+import com.example.wms.model.Location;
+import com.example.wms.model.LocationCapacityType;
+import com.example.wms.model.QcStatus;
+import com.example.wms.model.StorageArea;
+import com.example.wms.model.StorageAreaType;
+import com.example.wms.service.WarehouseService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,7 +51,7 @@ public class WarehouseController {
      */
     @PostMapping("/storage-areas")
     public ResponseEntity<StorageArea> createStorageArea(@RequestParam("description") String description,
-                                                         @RequestParam("type") StorageAreaType type) {
+            @RequestParam("type") StorageAreaType type) {
         StorageArea area = warehouseService.createStorageArea(description, type);
         return ResponseEntity.ok(area);
     }
@@ -67,13 +67,14 @@ public class WarehouseController {
     }
 
     /**
-     * Create Location in aisle: POST /api/wms/locations?storageAreaId=...&aisleId=...&type=...
+     * Create Location in aisle: POST
+     * /api/wms/locations?storageAreaId=...&aisleId=...&type=...
      * Type required (SINGLE, MULTI). ID generated as {aisleId}-L{M} e.g. S1-A3-L4
      */
     @PostMapping("/locations")
     public ResponseEntity<Location> createLocation(@RequestParam("storageAreaId") Long storageAreaId,
-                                                   @RequestParam("aisleId") String aisleId,
-                                                   @RequestParam("type") LocationCapacityType type) {
+            @RequestParam("aisleId") String aisleId,
+            @RequestParam("type") LocationCapacityType type) {
         Location location = warehouseService.createLocation(storageAreaId, aisleId, type);
         return ResponseEntity.ok(location);
     }
@@ -81,13 +82,14 @@ public class WarehouseController {
     /**
      * Create Box: POST /api/wms/boxes?type=...&qcStatus=...&orderId=...
      * ID auto-generated Long; type=StorageAreaType, qcStatus required.
-     * If type=INWARD, orderId required and validated via OMS API (OMS source of truth for InwardOrder).
+     * If type=INWARD, orderId required and validated via OMS API (OMS source of
+     * truth for InwardOrder).
      * Location nullable.
      */
     @PostMapping("/boxes")
     public ResponseEntity<Box> createBox(@RequestParam("type") StorageAreaType type,
-                                         @RequestParam("qcStatus") QcStatus qcStatus,
-                                         @RequestParam(value = "orderId", required = false) Long orderId) {
+            @RequestParam("qcStatus") QcStatus qcStatus,
+            @RequestParam(value = "orderId", required = false) Long orderId) {
         // If INWARD, validate InwardOrder exists in OMS
         if (type == StorageAreaType.INWARD) {
             if (orderId == null || orderId <= 0) {
@@ -95,7 +97,7 @@ public class WarehouseController {
             }
             try {
                 String omsUrl = omsBaseUrl + "/api/oms/orders/inward/" + orderId;
-                restTemplate.getForObject(omsUrl, Object.class);  // validates existence (InwardOrder or 404)
+                restTemplate.getForObject(omsUrl, Object.class); // validates existence (InwardOrder or 404)
             } catch (Exception e) {
                 // Handle 404/not found from OMS
                 throw new IllegalArgumentException("InwardOrder not found in OMS: " + orderId);
@@ -107,42 +109,43 @@ public class WarehouseController {
 
     /**
      * Update Box location: POST /api/wms/boxes/{boxId}/location?locationId=...
-     * Enforces Box.type must match StorageArea.type of location (nullable to unassign).
-     * If inward box assigned to inward location: calls OMS GRN API for linked orderId.
-     * Aggregates products/qty from Box.items (qty=1 per Item, uom="EACH") and posts to
+     * Enforces Box.type must match StorageArea.type of location (nullable to
+     * unassign).
+     * If inward box assigned to inward location: calls OMS GRN API for linked
+     * orderId.
+     * Aggregates products/qty from Box.items (qty=1 per Item, uom="EACH") and posts
+     * to
      * /api/oms/orders/inward/grn?orderId=... (OMS source of truth for inward txns).
-     * @param boxId path var
+     * 
+     * @param boxId      path var
      * @param locationId param (optional; omit or empty to clear)
      */
     @PostMapping("/boxes/{boxId}/location")
     public ResponseEntity<Box> updateBoxLocation(@PathVariable("boxId") Long boxId,
-                                                 @RequestParam(value = "locationId", required = false) String locationId) {
+            @RequestParam(value = "locationId", required = false) String locationId) {
         Box box = warehouseService.updateBoxLocation(boxId, locationId);
 
-        // Trigger OMS GRN if inward box assigned to inward location (via StorageArea type)
-        // (location ref provides area; INWARD triggers calc + call)
+        // Trigger OMS GRN if inward box assigned to inward location (via StorageArea
+        // type)
         if (box.getType() == StorageAreaType.INWARD && box.getOrderId() != null && box.getLocation() != null) {
-            // Fetch location's area type to confirm inward (simple; could cache)
-            // But since Box.type=INWARD and location assigned, proceed (task focus)
             // Aggregate: productId -> qty (1/Item default)
             Map<String, Integer> productQuantities = box.getItems().stream()
-                .collect(Collectors.groupingBy(Item::getProductId, Collectors.summingInt(e -> 1)));
+                    .collect(Collectors.groupingBy(Item::getProductId, Collectors.summingInt(e -> 1)));
 
             // Build GRN items payload (matches OMS GrnItem: skuId, unitOfMeasure, quantity)
-            // Use HashMap to avoid Java inference issues with Map.of + generics
             List<Map<String, Object>> grnItems = productQuantities.entrySet().stream()
-                .map(entry -> {
-                    Map<String, Object> grnItem = new HashMap<>();
-                    grnItem.put("skuId", entry.getKey());
-                    grnItem.put("unitOfMeasure", "EACH");
-                    grnItem.put("quantity", entry.getValue());
-                    return grnItem;
-                })
-                .collect(Collectors.toList());
+                    .map(entry -> {
+                        Map<String, Object> grnItem = new HashMap<>();
+                        grnItem.put("skuId", entry.getKey());
+                        grnItem.put("unitOfMeasure", "EACH");
+                        grnItem.put("quantity", entry.getValue());
+                        return grnItem;
+                    })
+                    .collect(Collectors.toList());
 
             // Call OMS GRN API for the Box's linked inward order
             String grnUrl = omsBaseUrl + "/api/oms/orders/inward/grn?orderId=" + box.getOrderId();
-            restTemplate.postForObject(grnUrl, grnItems, Object.class);  // triggers inward/GRN (ignores resp)
+            restTemplate.postForObject(grnUrl, grnItems, Object.class); // triggers inward/GRN (ignores resp)
         }
 
         return ResponseEntity.ok(box);
@@ -151,11 +154,12 @@ public class WarehouseController {
     /**
      * Create Item: POST /api/wms/items?productId=...&qcStatus=...
      * ID auto-generated Long; ties to Product; qcStatus for QC validation.
-     * Validates product existence via OMS API (OMS is source of truth, not direct library).
+     * Validates product existence via OMS API (OMS is source of truth, not direct
+     * library).
      */
     @PostMapping("/items")
     public ResponseEntity<Item> createItem(@RequestParam("productId") String productId,
-                                           @RequestParam("qcStatus") QcStatus qcStatus) {
+            @RequestParam("qcStatus") QcStatus qcStatus) {
         // Call OMS API to validate product (source of truth)
         try {
             String omsUrl = omsBaseUrl + "/api/oms/products/" + productId;
@@ -179,7 +183,7 @@ public class WarehouseController {
      */
     @PostMapping("/boxes/{boxId}/items")
     public ResponseEntity<Box> addItemToBox(@PathVariable("boxId") Long boxId,
-                                            @RequestParam("itemId") Long itemId) {
+            @RequestParam("itemId") Long itemId) {
         Box box = warehouseService.addItemToBox(itemId, boxId);
         return ResponseEntity.ok(box);
     }

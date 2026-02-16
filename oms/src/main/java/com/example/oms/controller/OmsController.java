@@ -46,28 +46,31 @@ public class OmsController {
     @PostMapping("/inventory/update")
     public ResponseEntity<Inventory> updateInventory(@RequestParam("skuId") String skuId,
             @RequestParam("unitOfMeasure") String unitOfMeasure, @RequestParam("locationId") String locationId,
-            @RequestParam("stageId") String stageId, @RequestParam("quantityChange") int quantityChange,
+            @RequestParam("stageId") Long stageId, @RequestParam("quantityChange") int quantityChange,
             @RequestParam("messageId") String messageId) {
-        Inventory inventory = omsService.updateInventory(skuId, unitOfMeasure, locationId, stageId, quantityChange, messageId);
+        Inventory inventory = omsService.updateInventory(skuId, unitOfMeasure, locationId, stageId, quantityChange,
+                messageId);
         return ResponseEntity.ok(inventory);
     }
 
     @PostMapping("/inventory/transition")
     public ResponseEntity<Inventory> makeInventoryTransition(@RequestParam("skuId") String skuId,
             @RequestParam("unitOfMeasure") String unitOfMeasure, @RequestParam("locationId") String locationId,
-            @RequestParam("fromStageId") String fromStageId, @RequestParam("toStageId") String toStageId,
+            @RequestParam("fromStageId") Long fromStageId, @RequestParam("toStageId") Long toStageId,
             @RequestParam("quantityToMove") int quantityToMove, @RequestParam("messageId") String messageId) {
-        Inventory inventory = omsService.makeInventoryTransition(skuId, unitOfMeasure, locationId, fromStageId, toStageId, quantityToMove, messageId);
+        Inventory inventory = omsService.makeInventoryTransition(skuId, unitOfMeasure, locationId, fromStageId,
+                toStageId, quantityToMove, messageId);
         return ResponseEntity.ok(inventory);
     }
 
     @PostMapping("/inventory/convert")
     public ResponseEntity<Inventory> convertProductUom(@RequestParam("skuId") String skuId,
             @RequestParam("fromUnitOfMeasure") String fromUnitOfMeasure,
-            @RequestParam("toUnitOfMeasure") String toUnitOfMeasure, @RequestParam("stageId") String stageId,
+            @RequestParam("toUnitOfMeasure") String toUnitOfMeasure, @RequestParam("stageId") Long stageId,
             @RequestParam("quantityToConvert") int quantityToConvert, @RequestParam("locationId") String locationId,
             @RequestParam("messageId") String messageId) {
-        Inventory inventory = omsService.convertProductUom(skuId, fromUnitOfMeasure, toUnitOfMeasure, stageId, quantityToConvert, locationId, messageId);
+        Inventory inventory = omsService.convertProductUom(skuId, fromUnitOfMeasure, toUnitOfMeasure, stageId,
+                quantityToConvert, locationId, messageId);
         return ResponseEntity.ok(inventory);
     }
 
@@ -103,7 +106,8 @@ public class OmsController {
     @PostMapping("/orders/inward/grn")
     public ResponseEntity<Grn> createGrn(@RequestParam("orderId") Long orderId,
             @RequestBody List<GrnItem> items) {
-        // allows multiple GRNs while PROCESSING; inwards products to RECEIVED stage in IMS
+        // allows multiple GRNs while PROCESSING; inwards products to RECEIVED stage in
+        // IMS
         // (location now from order, not GRN step)
         Grn grn = omsService.createGrn(orderId, items);
         return ResponseEntity.ok(grn);
@@ -119,7 +123,8 @@ public class OmsController {
     @PostMapping("/orders/purchase/create")
     public ResponseEntity<PurchaseOrder> createPurchaseOrder(@RequestParam("customerId") Long customerId,
             @RequestParam("locationId") String locationId, @RequestBody List<PurchaseOrderItem> items) {
-        // purchase order for customer+location; fulfillable status set based on inventory check in RECEIVED/AVAILABLE
+        // purchase order for customer+location; fulfillable status set based on
+        // inventory check in RECEIVED/AVAILABLE
         PurchaseOrder order = omsService.createPurchaseOrder(customerId, locationId, items);
         return ResponseEntity.ok(order);
     }

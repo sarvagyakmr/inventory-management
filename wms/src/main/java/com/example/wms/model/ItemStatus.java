@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.wms.model;
 
 /**
  * Status of Item in WMS for inventory accuracy/guardrails.

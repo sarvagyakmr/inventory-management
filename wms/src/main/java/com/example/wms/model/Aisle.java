@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.wms.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

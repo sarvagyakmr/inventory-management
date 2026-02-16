@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.wms.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
@@ -17,9 +17,12 @@ import java.util.Set;
  * Item entity for WMS (ties to product inventory).
  * - id: auto-increment Long
  * - productId: references Product.skuId
- * - qcStatus: QcStatus (PASS/FAIL/UNKNOWN) -- must match Box.qcStatus on assignment
- * - itemStatus: ItemStatus (CREATED default; transitions on Box/Location events for accuracy)
- * - boxes: Many-to-many via box_item join table (item can be in multiple boxes? but typically one)
+ * - qcStatus: QcStatus (PASS/FAIL/UNKNOWN) -- must match Box.qcStatus on
+ * assignment
+ * - itemStatus: ItemStatus (CREATED default; transitions on Box/Location events
+ * for accuracy)
+ * - boxes: Many-to-many via box_item join table (item can be in multiple boxes?
+ * but typically one)
  */
 @Entity
 @Table(name = "item")
@@ -29,13 +32,13 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String productId;  // FK ref to Product
+    private String productId; // FK ref to Product
 
     @Enumerated(EnumType.STRING)
     private QcStatus qcStatus;
 
     @Enumerated(EnumType.STRING)
-    private ItemStatus itemStatus = ItemStatus.CREATED;  // default
+    private ItemStatus itemStatus = ItemStatus.CREATED; // default
 
     // Many-to-many to Box; join table box_item (box_id, item_id) as specified
     // @JsonBackReference prevents circular serialization (Box -> Item -> Box loop)

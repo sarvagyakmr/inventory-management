@@ -32,13 +32,15 @@ public class InventoryController {
     }
 
     @PostMapping("/stages/add")
-    public ResponseEntity<Stage> addStage(@RequestParam("name") String name, @RequestParam("description") String description) {
+    public ResponseEntity<Stage> addStage(@RequestParam("name") String name,
+            @RequestParam("description") String description) {
         Stage stage = inventoryService.addStage(name, description);
         return ResponseEntity.ok(stage);
     }
 
     @PostMapping("/transitions/add")
-    public ResponseEntity<StageTransition> addStageTransition(@RequestParam("fromStageId") String fromStageId, @RequestParam("toStageId") String toStageId) {
+    public ResponseEntity<StageTransition> addStageTransition(@RequestParam("fromStageId") Long fromStageId,
+            @RequestParam("toStageId") Long toStageId) {
         StageTransition transition = inventoryService.addStageTransition(fromStageId, toStageId);
         return ResponseEntity.ok(transition);
     }
@@ -68,7 +70,7 @@ public class InventoryController {
     @PostMapping("/add")
     public ResponseEntity<Inventory> addInventory(@RequestParam("skuId") String skuId,
             @RequestParam("unitOfMeasure") String unitOfMeasure, @RequestParam("locationId") String locationId,
-            @RequestParam("stageId") String stageId) {
+            @RequestParam("stageId") Long stageId) {
         Inventory inventory = inventoryService.addInventory(skuId, unitOfMeasure, locationId, stageId);
         return ResponseEntity.ok(inventory);
     }
@@ -76,9 +78,10 @@ public class InventoryController {
     @PostMapping("/adjust")
     public ResponseEntity<Inventory> adjustQuantity(@RequestParam("skuId") String skuId,
             @RequestParam("unitOfMeasure") String unitOfMeasure, @RequestParam("locationId") String locationId,
-            @RequestParam("stageId") String stageId,
+            @RequestParam("stageId") Long stageId,
             @RequestParam("quantityChange") int quantityChange, @RequestParam("messageId") String messageId) {
-        Inventory inventory = inventoryService.adjustQuantity(skuId, unitOfMeasure, locationId, stageId, quantityChange, messageId);
+        Inventory inventory = inventoryService.adjustQuantity(skuId, unitOfMeasure, locationId, stageId, quantityChange,
+                messageId);
         return ResponseEntity.ok(inventory);
     }
 
@@ -99,9 +102,10 @@ public class InventoryController {
     public ResponseEntity<Inventory> moveInventory(@RequestParam("skuId") String skuId,
             @RequestParam("unitOfMeasure") String unitOfMeasure,
             @RequestParam("fromLocationId") String fromLocationId, @RequestParam("toLocationId") String toLocationId,
-            @RequestParam("stageId") String stageId,
+            @RequestParam("stageId") Long stageId,
             @RequestParam("quantityToMove") int quantityToMove) {
-        Inventory toInventory = inventoryService.moveInventory(skuId, unitOfMeasure, fromLocationId, toLocationId, stageId, quantityToMove);
+        Inventory toInventory = inventoryService.moveInventory(skuId, unitOfMeasure, fromLocationId, toLocationId,
+                stageId, quantityToMove);
         return ResponseEntity.ok(toInventory);
     }
 
@@ -109,19 +113,21 @@ public class InventoryController {
     public ResponseEntity<Inventory> convertUom(@RequestParam("skuId") String skuId,
             @RequestParam("fromUnitOfMeasure") String fromUnitOfMeasure,
             @RequestParam("toUnitOfMeasure") String toUnitOfMeasure,
-            @RequestParam("stageId") String stageId,
+            @RequestParam("stageId") Long stageId,
             @RequestParam("quantityToConvert") int quantityToConvert,
             @RequestParam("locationId") String locationId, @RequestParam("messageId") String messageId) {
-        Inventory toInventory = inventoryService.convertUom(skuId, fromUnitOfMeasure, toUnitOfMeasure, stageId, quantityToConvert, locationId, messageId);
+        Inventory toInventory = inventoryService.convertUom(skuId, fromUnitOfMeasure, toUnitOfMeasure, stageId,
+                quantityToConvert, locationId, messageId);
         return ResponseEntity.ok(toInventory);
     }
 
     @PostMapping("/move/stage")
     public ResponseEntity<Inventory> moveToStage(@RequestParam("skuId") String skuId,
             @RequestParam("unitOfMeasure") String unitOfMeasure, @RequestParam("locationId") String locationId,
-            @RequestParam("fromStageId") String fromStageId, @RequestParam("toStageId") String toStageId,
+            @RequestParam("fromStageId") Long fromStageId, @RequestParam("toStageId") Long toStageId,
             @RequestParam("quantityToMove") int quantityToMove, @RequestParam("messageId") String messageId) {
-        Inventory toInventory = inventoryService.moveToStage(skuId, unitOfMeasure, locationId, fromStageId, toStageId, quantityToMove, messageId);
+        Inventory toInventory = inventoryService.moveToStage(skuId, unitOfMeasure, locationId, fromStageId, toStageId,
+                quantityToMove, messageId);
         return ResponseEntity.ok(toInventory);
     }
 }

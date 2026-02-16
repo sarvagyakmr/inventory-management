@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.wms.model;
 
 /**
  * QC (Quality Control) status for Box and Item in WMS.

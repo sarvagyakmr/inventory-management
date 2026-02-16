@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.wms.model;
 
 /**
  * Capacity/usage type for Location in warehouse.
