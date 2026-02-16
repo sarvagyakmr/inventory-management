@@ -1,6 +1,8 @@
 package com.example.inventory.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -9,24 +11,24 @@ import jakarta.persistence.Table;
 public class Stage {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String name;
     private String description;
 
     public Stage() {
     }
 
-    public Stage(String id, String name, String description) {
-        this.id = id;
+    public Stage(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

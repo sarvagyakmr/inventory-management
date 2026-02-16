@@ -17,6 +17,7 @@
         <module>example-usage</module>
         <module>oms</module>
         <module>wms</module>
+        <module>commons</module>
     </modules>
 
     <properties>
@@ -38,6 +39,11 @@
             <dependency>
                 <groupId>com.example</groupId>
                 <artifactId>inventory-library</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.example</groupId>
+                <artifactId>commons</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

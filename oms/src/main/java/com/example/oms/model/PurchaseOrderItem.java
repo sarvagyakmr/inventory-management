@@ -1,7 +1,10 @@
 package com.example.oms.model;
 
+import com.example.commons.enums.UnitOfMeasure;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,7 +20,9 @@ public class PurchaseOrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String skuId;
-    private String unitOfMeasure;
+
+    @Enumerated(EnumType.STRING)
+    private UnitOfMeasure unitOfMeasure;
     private int quantity;
     @ManyToOne
     @JoinColumn(name = "order_id")
@@ -27,7 +32,7 @@ public class PurchaseOrderItem {
     public PurchaseOrderItem() {
     }
 
-    public PurchaseOrderItem(String skuId, String unitOfMeasure, int quantity) {
+    public PurchaseOrderItem(String skuId, UnitOfMeasure unitOfMeasure, int quantity) {
         this.skuId = skuId;
         this.unitOfMeasure = unitOfMeasure;
         this.quantity = quantity;
@@ -49,11 +54,11 @@ public class PurchaseOrderItem {
         this.skuId = skuId;
     }
 
-    public String getUnitOfMeasure() {
+    public UnitOfMeasure getUnitOfMeasure() {
         return unitOfMeasure;
     }
 
-    public void setUnitOfMeasure(String unitOfMeasure) {
+    public void setUnitOfMeasure(UnitOfMeasure unitOfMeasure) {
         this.unitOfMeasure = unitOfMeasure;
     }
 

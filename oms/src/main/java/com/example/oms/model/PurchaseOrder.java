@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import com.example.commons.enums.FulfillableStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,8 @@ public class PurchaseOrder {
     public PurchaseOrder() {
     }
 
-    public PurchaseOrder(Customer customer, String locationId, List<PurchaseOrderItem> items, FulfillableStatus fulfillableStatus) {
+    public PurchaseOrder(Customer customer, String locationId, List<PurchaseOrderItem> items,
+            FulfillableStatus fulfillableStatus) {
         this.customer = customer;
         this.locationId = locationId;
         this.fulfillableStatus = fulfillableStatus;
