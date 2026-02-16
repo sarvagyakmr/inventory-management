@@ -1,20 +1,21 @@
 package com.example.oms.service;
 
+import com.example.commons.enums.UnitOfMeasure;
 import com.example.inventory.model.Inventory;
-import com.example.inventory.model.LocationType;
+import com.example.commons.enums.LocationType;
 import com.example.inventory.model.Product;
 import com.example.inventory.model.ProductUom;
 import com.example.inventory.model.Stage;
 import com.example.inventory.model.StorageLocation;
 import com.example.inventory.service.InventoryService;
 import com.example.oms.model.Customer;
-import com.example.oms.model.FulfillableStatus;
+import com.example.commons.enums.FulfillableStatus;
 import com.example.oms.model.Grn;
 import com.example.oms.model.GrnItem;
 import com.example.oms.model.InwardOrder;
 import com.example.oms.model.InwardOrderItem;
-import com.example.oms.model.InventoryMovement;
-import com.example.oms.model.OrderStatus;
+import com.example.commons.enums.InventoryMovement;
+import com.example.commons.enums.OrderStatus;
 import com.example.oms.model.PurchaseOrder;
 import com.example.oms.model.PurchaseOrderItem;
 import com.example.oms.model.Supplier;
@@ -72,18 +73,20 @@ public class OmsService {
         return inventoryService.addProduct(skuId);
     }
 
-    public Inventory updateInventory(String skuId, String unitOfMeasure, String locationId, Long stageId,
+    public Inventory updateInventory(String skuId, UnitOfMeasure unitOfMeasure, String locationId, Long stageId,
             int quantityChange, String messageId) {
         return inventoryService.adjustQuantity(skuId, unitOfMeasure, locationId, stageId, quantityChange, messageId);
     }
 
-    public Inventory makeInventoryTransition(String skuId, String unitOfMeasure, String locationId, Long fromStageId,
+    public Inventory makeInventoryTransition(String skuId, UnitOfMeasure unitOfMeasure, String locationId,
+            Long fromStageId,
             Long toStageId, int quantityToMove, String messageId) {
         return inventoryService.moveToStage(skuId, unitOfMeasure, locationId, fromStageId, toStageId, quantityToMove,
                 messageId);
     }
 
-    public Inventory convertProductUom(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, Long stageId,
+    public Inventory convertProductUom(String skuId, UnitOfMeasure fromUnitOfMeasure, UnitOfMeasure toUnitOfMeasure,
+            Long stageId,
             int quantityToConvert, String locationId, String messageId) {
         return inventoryService.convertUom(skuId, fromUnitOfMeasure, toUnitOfMeasure, stageId, quantityToConvert,
                 locationId, messageId);
@@ -109,7 +112,7 @@ public class OmsService {
         return inwardOrderRepository.save(order);
     }
 
-    public ProductUom addProductUom(String skuId, String unitOfMeasure) {
+    public ProductUom addProductUom(String skuId, UnitOfMeasure unitOfMeasure) {
         // also ensure product exists in IMS
         try {
             inventoryService.addProduct(skuId);

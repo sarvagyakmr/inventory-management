@@ -1,4 +1,4 @@
-package com.example.inventory.model;
+package com.example.commons.enums;
 
 public enum LocationType {
     STORE, WAREHOUSE, FACTORY

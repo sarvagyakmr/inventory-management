@@ -16,8 +16,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 @SpringBootApplication
 @Import(InventoryConfig.class)
-@EntityScan(basePackages = { "com.example.wms.model", "com.example.inventory.model" })
-@EnableJpaRepositories(basePackages = { "com.example.wms.repository", "com.example.inventory.repository" })
+@EntityScan(basePackages = { "com.example.wms.model" })
+@EnableJpaRepositories(basePackages = { "com.example.wms.repository" })
 public class WmsApplication {
 
     public static void main(String[] args) {

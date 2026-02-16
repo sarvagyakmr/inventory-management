@@ -15,6 +15,10 @@
     <dependencies>
         <dependency>
             <groupId>com.example</groupId>
+            <artifactId>commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.example</groupId>
             <artifactId>inventory-library</artifactId>
         </dependency>
         <dependency>

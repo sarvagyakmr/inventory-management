@@ -1,7 +1,8 @@
 package com.example.inventory.service;
 
+import com.example.commons.enums.UnitOfMeasure;
 import com.example.inventory.model.Inventory;
-import com.example.inventory.model.LocationType;
+import com.example.commons.enums.LocationType;
 import com.example.inventory.model.ProcessedMessage;
 import com.example.inventory.model.Product;
 import com.example.inventory.model.ProductUom;
@@ -95,7 +96,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public ProductUom addUom(String skuId, String unitOfMeasure) {
+    public ProductUom addUom(String skuId, UnitOfMeasure unitOfMeasure) {
         if (!productRepository.existsById(skuId)) {
             throw new IllegalArgumentException("Product not found");
         }
@@ -108,7 +109,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public UomConversion addConversion(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, double factor) {
+    public UomConversion addConversion(String skuId, UnitOfMeasure fromUnitOfMeasure, UnitOfMeasure toUnitOfMeasure,
+            double factor) {
         if (factor <= 0) {
             throw new IllegalArgumentException("Conversion factor must be positive");
         }
@@ -128,7 +130,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public Inventory addInventory(String skuId, String unitOfMeasure, String locationId, Long stageId) {
+    public Inventory addInventory(String skuId, UnitOfMeasure unitOfMeasure, String locationId, Long stageId) {
         if (!locationRepository.existsById(locationId)) {
             throw new IllegalArgumentException("Location not found");
         }
@@ -162,7 +164,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public Inventory adjustQuantity(String skuId, String unitOfMeasure, String locationId, Long stageId,
+    public Inventory adjustQuantity(String skuId, UnitOfMeasure unitOfMeasure, String locationId, Long stageId,
             int quantityChange, String messageId) {
         checkAndRecordMessageId(messageId);
         Inventory inventory = inventoryRepository
@@ -178,7 +180,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Inventory> getInventory(String skuId, String unitOfMeasure) {
+    public List<Inventory> getInventory(String skuId, UnitOfMeasure unitOfMeasure) {
         return inventoryRepository.findAll().stream()
                 .filter(inv -> skuId.equals(inv.getSkuId()) && unitOfMeasure.equals(inv.getUnitOfMeasure()))
                 .toList();
@@ -194,7 +196,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public Inventory moveInventory(String skuId, String unitOfMeasure, String fromLocationId, String toLocationId,
+    public Inventory moveInventory(String skuId, UnitOfMeasure unitOfMeasure, String fromLocationId,
+            String toLocationId,
             Long stageId, int quantityToMove) {
         if (quantityToMove <= 0) {
             throw new IllegalArgumentException("Quantity to move must be positive");
@@ -229,7 +232,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public Inventory convertUom(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, Long stageId,
+    public Inventory convertUom(String skuId, UnitOfMeasure fromUnitOfMeasure, UnitOfMeasure toUnitOfMeasure,
+            Long stageId,
             int quantityToConvert, String locationId, String messageId) {
         checkAndRecordMessageId(messageId);
         if (quantityToConvert <= 0) {
@@ -271,7 +275,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public Inventory moveToStage(String skuId, String unitOfMeasure, String locationId, Long fromStageId,
+    public Inventory moveToStage(String skuId, UnitOfMeasure unitOfMeasure, String locationId, Long fromStageId,
             Long toStageId, int quantityToMove, String messageId) {
         checkAndRecordMessageId(messageId);
         if (quantityToMove <= 0) {

@@ -12,6 +12,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import com.example.commons.enums.StorageAreaType;
+import com.example.commons.enums.QcStatus;
 
 import java.util.HashSet;
 import java.util.Set;

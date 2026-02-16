@@ -5,6 +5,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import com.example.commons.enums.LocationCapacityType;
 
 /**
  * Location entity in warehouse (detailed storage location).

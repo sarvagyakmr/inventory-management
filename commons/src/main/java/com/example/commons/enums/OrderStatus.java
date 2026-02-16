@@ -1,4 +1,4 @@
-package com.example.oms.model;
+package com.example.commons.enums;
 
 public enum OrderStatus {
     CREATED, PROCESSING, COMPLETE, CANCELLED

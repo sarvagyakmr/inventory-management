@@ -2,12 +2,16 @@ package com.example.inventory.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+
+import com.example.commons.enums.UnitOfMeasure;
 
 @Entity
 @Table(name = "inventory")
@@ -20,8 +24,9 @@ public class Inventory {
     @Column(name = "sku_id")
     private String skuId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "unit_of_measure")
-    private String unitOfMeasure;
+    private UnitOfMeasure unitOfMeasure;
 
     @Column(name = "location_id")
     private String locationId;
@@ -45,7 +50,7 @@ public class Inventory {
     public Inventory() {
     }
 
-    public Inventory(String skuId, String unitOfMeasure, String locationId, Long stageId, int quantity) {
+    public Inventory(String skuId, UnitOfMeasure unitOfMeasure, String locationId, Long stageId, int quantity) {
         this.skuId = skuId;
         this.unitOfMeasure = unitOfMeasure;
         this.locationId = locationId;
@@ -93,11 +98,11 @@ public class Inventory {
         this.skuId = skuId;
     }
 
-    public String getUnitOfMeasure() {
+    public UnitOfMeasure getUnitOfMeasure() {
         return unitOfMeasure;
     }
 
-    public void setUnitOfMeasure(String unitOfMeasure) {
+    public void setUnitOfMeasure(UnitOfMeasure unitOfMeasure) {
         this.unitOfMeasure = unitOfMeasure;
     }
 

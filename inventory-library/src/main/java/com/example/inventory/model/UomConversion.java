@@ -2,10 +2,14 @@ package com.example.inventory.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import com.example.commons.enums.UnitOfMeasure;
 
 @Entity
 @Table(name = "uom_conversion")
@@ -18,21 +22,24 @@ public class UomConversion {
     @Column(name = "from_sku_id")
     private String fromSkuId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "from_unit_of_measure")
-    private String fromUnitOfMeasure;
+    private UnitOfMeasure fromUnitOfMeasure;
 
     @Column(name = "to_sku_id")
     private String toSkuId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "to_unit_of_measure")
-    private String toUnitOfMeasure;
+    private UnitOfMeasure toUnitOfMeasure;
 
     private double factor;
 
     public UomConversion() {
     }
 
-    public UomConversion(String fromSkuId, String fromUnitOfMeasure, String toSkuId, String toUnitOfMeasure,
+    public UomConversion(String fromSkuId, UnitOfMeasure fromUnitOfMeasure, String toSkuId,
+            UnitOfMeasure toUnitOfMeasure,
             double factor) {
         this.fromSkuId = fromSkuId;
         this.fromUnitOfMeasure = fromUnitOfMeasure;
@@ -57,11 +64,11 @@ public class UomConversion {
         this.fromSkuId = fromSkuId;
     }
 
-    public String getFromUnitOfMeasure() {
+    public UnitOfMeasure getFromUnitOfMeasure() {
         return fromUnitOfMeasure;
     }
 
-    public void setFromUnitOfMeasure(String fromUnitOfMeasure) {
+    public void setFromUnitOfMeasure(UnitOfMeasure fromUnitOfMeasure) {
         this.fromUnitOfMeasure = fromUnitOfMeasure;
     }
 
@@ -73,11 +80,11 @@ public class UomConversion {
         this.toSkuId = toSkuId;
     }
 
-    public String getToUnitOfMeasure() {
+    public UnitOfMeasure getToUnitOfMeasure() {
         return toUnitOfMeasure;
     }
 
-    public void setToUnitOfMeasure(String toUnitOfMeasure) {
+    public void setToUnitOfMeasure(UnitOfMeasure toUnitOfMeasure) {
         this.toUnitOfMeasure = toUnitOfMeasure;
     }
 

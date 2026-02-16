@@ -2,10 +2,14 @@ package com.example.inventory.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
+import com.example.commons.enums.UnitOfMeasure;
 
 @Entity
 @Table(name = "product_uom")
@@ -18,13 +22,14 @@ public class ProductUom {
     @Column(name = "sku_id")
     private String skuId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "unit_of_measure")
-    private String unitOfMeasure;
+    private UnitOfMeasure unitOfMeasure;
 
     public ProductUom() {
     }
 
-    public ProductUom(String skuId, String unitOfMeasure) {
+    public ProductUom(String skuId, UnitOfMeasure unitOfMeasure) {
         this.skuId = skuId;
         this.unitOfMeasure = unitOfMeasure;
     }
@@ -45,11 +50,11 @@ public class ProductUom {
         this.skuId = skuId;
     }
 
-    public String getUnitOfMeasure() {
+    public UnitOfMeasure getUnitOfMeasure() {
         return unitOfMeasure;
     }
 
-    public void setUnitOfMeasure(String unitOfMeasure) {
+    public void setUnitOfMeasure(UnitOfMeasure unitOfMeasure) {
         this.unitOfMeasure = unitOfMeasure;
     }
 }

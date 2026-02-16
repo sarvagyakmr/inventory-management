@@ -9,6 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import com.example.commons.enums.QcStatus;
+import com.example.commons.enums.ItemStatus;
 
 import java.util.HashSet;
 import java.util.Set;

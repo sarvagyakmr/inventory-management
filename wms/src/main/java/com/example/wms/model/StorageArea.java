@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import com.example.commons.enums.StorageAreaType;
 
 /**
  * StorageArea entity for warehouse configuration.

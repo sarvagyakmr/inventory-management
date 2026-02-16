@@ -3,12 +3,12 @@ package com.example.wms.service;
 import com.example.wms.model.Aisle;
 import com.example.wms.model.Box;
 import com.example.wms.model.Item;
-import com.example.wms.model.ItemStatus;
+import com.example.commons.enums.ItemStatus;
 import com.example.wms.model.Location;
-import com.example.wms.model.LocationCapacityType;
-import com.example.wms.model.QcStatus;
+import com.example.commons.enums.LocationCapacityType;
+import com.example.commons.enums.QcStatus;
 import com.example.wms.model.StorageArea;
-import com.example.wms.model.StorageAreaType;
+import com.example.commons.enums.StorageAreaType;
 
 /**
  * Service for Warehouse Management System (WMS) storage location configuration.
