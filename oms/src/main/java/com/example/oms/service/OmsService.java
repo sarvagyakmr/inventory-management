@@ -219,4 +219,21 @@ public class OmsService {
         return purchaseOrderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
     }
+
+    /**
+     * Get Product by ID (skuId). OMS acts as source of truth for products,
+     * wrapping core inventory library. Used by WMS for validation.
+     */
+    public Product getProduct(String skuId) {
+        return inventoryService.getProduct(skuId);
+    }
+
+    /**
+     * Get InwardOrder by ID. Used by WMS for Box creation validation when type=INWARD.
+     * OMS is source of truth for orders.
+     */
+    public InwardOrder getInwardOrder(Long orderId) {
+        return inwardOrderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Inward order not found: " + orderId));
+    }
 }

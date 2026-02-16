@@ -306,4 +306,12 @@ public class InventoryServiceImpl implements InventoryService {
         toInv.setQuantity(toInv.getQuantity() + quantityToMove);
         return inventoryRepository.save(toInv);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Product getProduct(String skuId) {
+        // OMS is source of truth; this supports it via library core
+        return productRepository.findById(skuId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + skuId));
+    }
 }

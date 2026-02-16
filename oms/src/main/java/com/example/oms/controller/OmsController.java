@@ -129,4 +129,24 @@ public class OmsController {
         PurchaseOrder order = omsService.getPurchaseOrderById(orderId);
         return ResponseEntity.ok(order);
     }
+
+    /**
+     * Get Product by ID (skuId). OMS is the source of truth for products.
+     * WMS calls this API for validation (e.g., when creating Items).
+     */
+    @GetMapping("/products/{skuId}")
+    public ResponseEntity<Product> getProduct(@PathVariable("skuId") String skuId) {
+        Product product = omsService.getProduct(skuId);
+        return ResponseEntity.ok(product);
+    }
+
+    /**
+     * Get InwardOrder by ID. OMS is source of truth for orders.
+     * Used by WMS for Box creation when type=INWARD (requires orderId).
+     */
+    @GetMapping("/orders/inward/{orderId}")
+    public ResponseEntity<InwardOrder> getInwardOrder(@PathVariable("orderId") Long orderId) {
+        InwardOrder order = omsService.getInwardOrder(orderId);
+        return ResponseEntity.ok(order);
+    }
 }

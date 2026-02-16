@@ -29,4 +29,12 @@ public interface InventoryService {
     Inventory convertUom(String skuId, String fromUnitOfMeasure, String toUnitOfMeasure, String stageId, int quantityToConvert, String locationId, String messageId);
     // move to new stage (checks allowed transition)
     Inventory moveToStage(String skuId, String unitOfMeasure, String locationId, String fromStageId, String toStageId, int quantityToMove, String messageId);
+
+    /**
+     * Get Product by skuId. Used by OMS as source of truth for products.
+     * @param skuId product SKU
+     * @return Product
+     * @throws IllegalArgumentException if not found
+     */
+    Product getProduct(String skuId);
 }
