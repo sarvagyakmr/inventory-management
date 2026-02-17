@@ -8,7 +8,6 @@ import com.example.inventory.model.ProductUom;
 import com.example.inventory.model.Stage;
 import com.example.inventory.model.StorageLocation;
 import com.example.inventory.service.InventoryService;
-import com.example.oms.model.Customer;
 import com.example.commons.enums.FulfillableStatus;
 import com.example.oms.model.Grn;
 import com.example.oms.model.GrnItem;
@@ -18,12 +17,9 @@ import com.example.commons.enums.InventoryMovement;
 import com.example.commons.enums.OrderStatus;
 import com.example.oms.model.PurchaseOrder;
 import com.example.oms.model.PurchaseOrderItem;
-import com.example.oms.model.Supplier;
-import com.example.oms.repository.CustomerRepository;
 import com.example.oms.repository.GrnRepository;
 import com.example.oms.repository.InwardOrderRepository;
 import com.example.oms.repository.PurchaseOrderRepository;
-import com.example.oms.repository.SupplierRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,20 +30,19 @@ import java.util.List;
 public class OmsService {
 
     private final InventoryService inventoryService;
-    private final SupplierRepository supplierRepository;
     private final InwardOrderRepository inwardOrderRepository;
     private final GrnRepository grnRepository;
-    private final CustomerRepository customerRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
 
-    public OmsService(InventoryService inventoryService, SupplierRepository supplierRepository,
+    // Supplier/Customer repos removed (master-data module owns entities).
+    // Use ids only; verification via MasterDataClient in upper layers (e.g., OmsDtoService).
+
+    public OmsService(InventoryService inventoryService,
             InwardOrderRepository inwardOrderRepository, GrnRepository grnRepository,
-            CustomerRepository customerRepository, PurchaseOrderRepository purchaseOrderRepository) {
+            PurchaseOrderRepository purchaseOrderRepository) {
         this.inventoryService = inventoryService;
-        this.supplierRepository = supplierRepository;
         this.inwardOrderRepository = inwardOrderRepository;
         this.grnRepository = grnRepository;
-        this.customerRepository = customerRepository;
         this.purchaseOrderRepository = purchaseOrderRepository;
     }
 
@@ -92,16 +87,14 @@ public class OmsService {
                 locationId, messageId);
     }
 
-    public Supplier addSupplier(String name, String contactInfo) {
-        Supplier supplier = new Supplier(name, contactInfo);
-        return supplierRepository.save(supplier);
-    }
+    // addSupplier moved to master-data module; use MasterDataClient for verification instead.
+    // Direct Supplier entity use removed; use id only.
 
     public InwardOrder createInwardOrder(Long supplierId, String locationId, List<InwardOrderItem> items) {
-        Supplier supplier = supplierRepository.findById(supplierId)
-                .orElseThrow(() -> new IllegalArgumentException("Supplier not found"));
+        // Supplier existence verified via MasterDataClient in OmsDtoService (upper layer).
+        // No direct entity/repo use here (supplierId only).
         // order now linked to location (per req; GRN will use it)
-        InwardOrder order = new InwardOrder(supplier, locationId, items);
+        InwardOrder order = new InwardOrder(supplierId, locationId, items);
         return inwardOrderRepository.save(order);
     }
 
@@ -162,18 +155,16 @@ public class OmsService {
         return grn;
     }
 
-    public Customer addCustomer(String name, String contactInfo) {
-        Customer customer = new Customer(name, contactInfo);
-        return customerRepository.save(customer);
-    }
+    // addCustomer moved to master-data module; use MasterDataClient for verification instead.
+    // Direct Customer entity use removed; use id only.
 
     @Transactional
     public PurchaseOrder createPurchaseOrder(Long customerId, String locationId, List<PurchaseOrderItem> items) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+        // Customer existence verified via MasterDataClient in OmsDtoService (upper layer).
+        // No direct entity/repo use here (customerId only).
         // determine fulfillable based on inventory in RECEIVED or AVAILABLE stages
         FulfillableStatus status = determineFulfillableStatus(items);
-        PurchaseOrder order = new PurchaseOrder(customer, locationId, items, status);
+        PurchaseOrder order = new PurchaseOrder(customerId, locationId, items, status);
         order = purchaseOrderRepository.save(order);
         // if fulfillable, allocate inventory by moving to ALLOCATED stage
         if (status == FulfillableStatus.FULFILLABLE) {

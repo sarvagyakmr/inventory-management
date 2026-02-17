@@ -47,11 +47,8 @@ public class OmsController {
         return ResponseEntity.ok(inventory);
     }
 
-    @PostMapping("/suppliers/add")
-    public ResponseEntity<SupplierResponse> addSupplier(@RequestBody SupplierRequest request) {
-        SupplierResponse supplier = omsService.addSupplier(request);
-        return ResponseEntity.ok(supplier);
-    }
+    // Supplier/Customer create APIs moved to master-data module (/api/master-data).
+    // See MasterDataController for /suppliers/add and /customers/add.
 
     @PostMapping("/orders/inward/create")
     public ResponseEntity<InwardOrderResponse> createInwardOrder(@RequestBody InwardOrderRequest request) {
@@ -76,12 +73,6 @@ public class OmsController {
     public ResponseEntity<GrnResponse> createGrn(@RequestBody GrnRequest request) {
         GrnResponse grn = omsService.createGrn(request.getOrderId(), request.getItems());
         return ResponseEntity.ok(grn);
-    }
-
-    @PostMapping("/customers/add")
-    public ResponseEntity<CustomerResponse> addCustomer(@RequestBody CustomerRequest request) {
-        CustomerResponse customer = omsService.addCustomer(request);
-        return ResponseEntity.ok(customer);
     }
 
     @PostMapping("/orders/purchase/create")

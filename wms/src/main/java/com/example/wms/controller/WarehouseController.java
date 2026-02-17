@@ -2,7 +2,9 @@ package com.example.wms.controller;
 
 import com.example.commons.dto.wms.*;
 import com.example.commons.enums.StorageAreaType;
+import com.example.commons.client.oms.OmsClient;
 import com.example.wms.service.WarehouseDtoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +21,28 @@ public class WarehouseController {
 
     private final WarehouseDtoService warehouseService;
     private final RestTemplate restTemplate = new RestTemplate();
+    // Non-final to support setter autowiring as per requirements.
+    private OmsClient omsClient;
 
     @Value("${oms.base-url:http://localhost:8081}")
     private String omsBaseUrl;
 
+    /**
+     * Constructor for core dependencies.
+     * OmsClient is autowired separately via setter (see below).
+     */
     public WarehouseController(WarehouseDtoService warehouseService) {
         this.warehouseService = warehouseService;
+    }
+
+    /**
+     * Setter autowiring for OmsClient (injected from the bean defined in the
+     * wms module's WmsApplication). This resolves initialization issues for
+     * classes from dependency modules without relying on component scanning.
+     */
+    @Autowired
+    public void setOmsClient(OmsClient omsClient) {
+        this.omsClient = omsClient;
     }
 
     @PostMapping("/storage-areas")
@@ -51,9 +69,12 @@ public class WarehouseController {
             if (request.getOrderId() == null || request.getOrderId() <= 0) {
                 throw new IllegalArgumentException("orderId required for INWARD box type");
             }
+            // Use OmsClient (from commons-client) for the /orders/inward GET call.
+            // This replaces direct RestTemplate usage for better abstraction.
+            // Retains try-catch to preserve exact error handling and message.
+            // Other OMS calls (GRN, products) remain direct for now as per scope.
             try {
-                String omsUrl = omsBaseUrl + "/api/oms/orders/inward/" + request.getOrderId();
-                restTemplate.getForObject(omsUrl, Object.class);
+                omsClient.getInwardOrder(request.getOrderId());
             } catch (Exception e) {
                 throw new IllegalArgumentException("InwardOrder not found in OMS: " + request.getOrderId());
             }

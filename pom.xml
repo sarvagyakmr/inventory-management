@@ -18,6 +18,8 @@
         <module>oms</module>
         <module>wms</module>
         <module>commons</module>
+        <module>commons-client</module>
+        <module>master-data</module>
     </modules>
 
     <properties>
@@ -44,6 +46,16 @@
             <dependency>
                 <groupId>com.example</groupId>
                 <artifactId>commons</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.example</groupId>
+                <artifactId>commons-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.example</groupId>
+                <artifactId>master-data</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
