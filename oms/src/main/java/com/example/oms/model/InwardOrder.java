@@ -9,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import com.example.commons.enums.OrderStatus;
@@ -24,20 +23,28 @@ public class InwardOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+    // supplierId only (Long) to remove direct entity dependency on master-data module.
+    // @JoinColumn preserves FK relationship in DB; no @ManyToOne object ref.
     @JoinColumn(name = "supplier_id")
-    private Supplier supplier;
+    private Long supplierId;
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
     private String locationId;
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<InwardOrderItem> items = new ArrayList<>();
 
+    /**
+     * Default constructor.
+     */
     public InwardOrder() {
     }
 
-    public InwardOrder(Supplier supplier, String locationId, List<InwardOrderItem> items) {
-        this.supplier = supplier;
+    /**
+     * Constructor using supplierId (Long) only - no direct Supplier entity reference.
+     * Updated to decouple OMS from master-data entities.
+     */
+    public InwardOrder(Long supplierId, String locationId, List<InwardOrderItem> items) {
+        this.supplierId = supplierId;
         this.locationId = locationId;
         this.status = OrderStatus.CREATED;
         this.items = items != null ? items : new ArrayList<>();
@@ -54,12 +61,18 @@ public class InwardOrder {
         this.id = id;
     }
 
-    public Supplier getSupplier() {
-        return supplier;
+    /**
+     * Gets supplierId (Long only; no entity ref).
+     */
+    public Long getSupplierId() {
+        return supplierId;
     }
 
-    public void setSupplier(Supplier supplier) {
-        this.supplier = supplier;
+    /**
+     * Sets supplierId (Long only; no entity ref).
+     */
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
     }
 
     public OrderStatus getStatus() {

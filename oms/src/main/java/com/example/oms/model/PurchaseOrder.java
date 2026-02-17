@@ -9,7 +9,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import com.example.commons.enums.FulfillableStatus;
@@ -24,9 +23,10 @@ public class PurchaseOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
+    // customerId only (Long) to remove direct entity dependency on master-data module.
+    // @JoinColumn preserves FK relationship in DB; no @ManyToOne object ref.
     @JoinColumn(name = "customer_id")
-    private Customer customer;
+    private Long customerId;
     private String locationId;
     @Enumerated(EnumType.STRING)
     private FulfillableStatus fulfillableStatus;
@@ -36,9 +36,13 @@ public class PurchaseOrder {
     public PurchaseOrder() {
     }
 
-    public PurchaseOrder(Customer customer, String locationId, List<PurchaseOrderItem> items,
+    /**
+     * Constructor using customerId (Long) only - no direct Customer entity reference.
+     * Updated to decouple OMS from master-data entities.
+     */
+    public PurchaseOrder(Long customerId, String locationId, List<PurchaseOrderItem> items,
             FulfillableStatus fulfillableStatus) {
-        this.customer = customer;
+        this.customerId = customerId;
         this.locationId = locationId;
         this.fulfillableStatus = fulfillableStatus;
         this.items = items != null ? items : new ArrayList<>();
@@ -55,12 +59,18 @@ public class PurchaseOrder {
         this.id = id;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    /**
+     * Gets customerId (Long only; no entity ref).
+     */
+    public Long getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    /**
+     * Sets customerId (Long only; no entity ref).
+     */
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
     public String getLocationId() {

@@ -1,4 +1,4 @@
-package com.example.oms.model;
+package com.example.masterdata.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -6,6 +6,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Supplier master data entity, moved to master-data module.
+ */
 @Entity
 @Table(name = "supplier")
 public class Supplier {

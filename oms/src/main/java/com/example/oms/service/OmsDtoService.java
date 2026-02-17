@@ -3,6 +3,7 @@ package com.example.oms.service;
 import com.example.commons.dto.inventory.*;
 import com.example.commons.dto.oms.*;
 import com.example.commons.enums.LocationType;
+import com.example.commons.client.masterdata.MasterDataClient;
 import com.example.inventory.model.*;
 import com.example.oms.model.*;
 import org.springframework.stereotype.Service;
@@ -49,10 +50,8 @@ public class OmsDtoService {
         return mapToInventoryResponse(inventory);
     }
 
-    public SupplierResponse addSupplier(SupplierRequest request) {
-        Supplier supplier = omsService.addSupplier(request.getName(), request.getContactInfo());
-        return mapToSupplierResponse(supplier);
-    }
+    // addSupplier/addCustomer moved to master-data module; use MasterDataClient for verification instead.
+    // Direct Supplier/Customer entity use removed from OMS.
 
     public InwardOrderResponse createInwardOrder(InwardOrderRequest request) {
         // Map request items to model items
@@ -78,11 +77,6 @@ public class OmsDtoService {
         List<GrnItem> items = itemRequests.stream().map(this::mapToGrnItemModel).collect(Collectors.toList());
         Grn grn = omsService.createGrn(orderId, items);
         return mapToGrnResponse(grn);
-    }
-
-    public CustomerResponse addCustomer(CustomerRequest request) {
-        Customer customer = omsService.addCustomer(request.getName(), request.getContactInfo());
-        return mapToCustomerResponse(customer);
     }
 
     public PurchaseOrderResponse createPurchaseOrder(PurchaseOrderRequest request) {
@@ -122,10 +116,6 @@ public class OmsDtoService {
                 inventory.getLocationId(), inventory.getStageId(), inventory.getQuantity());
     }
 
-    private SupplierResponse mapToSupplierResponse(Supplier supplier) {
-        return new SupplierResponse(supplier.getId(), supplier.getName(), supplier.getContactInfo());
-    }
-
     private InwardOrderItem mapToInwardOrderItemModel(InwardOrderItemRequest request) {
         return new InwardOrderItem(request.getSkuId(), request.getQuantity());
     }
@@ -134,7 +124,8 @@ public class OmsDtoService {
         List<InwardOrderItemResponse> itemResponses = order.getItems().stream()
                 .map(item -> new InwardOrderItemResponse(item.getId(), item.getSkuId(), item.getQuantity()))
                 .collect(Collectors.toList());
-        return new InwardOrderResponse(order.getId(), order.getSupplier().getId(), order.getStatus(),
+        // Use getSupplierId() (id-only ref after removing Supplier entity dependency)
+        return new InwardOrderResponse(order.getId(), order.getSupplierId(), order.getStatus(),
                 order.getLocationId(), itemResponses);
     }
 
@@ -155,10 +146,6 @@ public class OmsDtoService {
         return new GrnResponse(grn.getId(), grn.getOrder().getId(), grn.getReceivedDate(), itemResponses);
     }
 
-    private CustomerResponse mapToCustomerResponse(Customer customer) {
-        return new CustomerResponse(customer.getId(), customer.getName(), customer.getContactInfo());
-    }
-
     private PurchaseOrderItem mapToPurchaseOrderItemModel(PurchaseOrderItemRequest request) {
         return new PurchaseOrderItem(request.getSkuId(), request.getUnitOfMeasure(), request.getQuantity());
     }
@@ -168,7 +155,8 @@ public class OmsDtoService {
                 .map(item -> new PurchaseOrderItemResponse(item.getId(), item.getSkuId(), item.getUnitOfMeasure(),
                         item.getQuantity()))
                 .collect(Collectors.toList());
-        return new PurchaseOrderResponse(order.getId(), order.getCustomer().getId(), order.getLocationId(),
+        // Use getCustomerId() (id-only ref after removing Customer entity dependency)
+        return new PurchaseOrderResponse(order.getId(), order.getCustomerId(), order.getLocationId(),
                 order.getFulfillableStatus(), itemResponses);
     }
 }

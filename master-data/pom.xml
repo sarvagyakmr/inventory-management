@@ -10,14 +10,13 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>wms</artifactId>
+    <artifactId>master-data</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>commons</artifactId>
         </dependency>
-        <!-- commons-client for shared REST clients (e.g., OmsClient) -->
         <dependency>
             <groupId>com.example</groupId>
             <artifactId>commons-client</artifactId>
